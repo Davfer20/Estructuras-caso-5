@@ -274,12 +274,153 @@ public:
     }
 };
 
+void matches()
+{
+}
+void requests()
+{
+}
+void valueChain()
+{
+}
+void circularTrade()
+{
+}
+void top10Trades()
+{
+}
+void relatedMarket()
+{
+}
+
+void mainMenu(Registered *pUser)
+{
+    int resp;
+    while (true)
+    {
+        cout << endl
+             << "◌ » —— ╫ <" << pUser->getNickname() << "> ╫ —— « ◌" << endl
+             << "1. Matches" << endl
+             << "2. Comercio Circular" << endl
+             << "3. Cadenas de Valor" << endl
+             << "4. Top 10 Solicitados" << endl
+             << "5. Grafico de Presencia" << endl
+             << "6. Solicitudes" << endl
+             << "0. Salir" << endl
+             << endl
+             << "Digite la opcion: ";
+        cin >> resp;
+        if (resp == 1)
+        {
+            matches();
+        }
+        else if (resp == 2)
+        {
+            circularTrade();
+        }
+        else if (resp == 3)
+        {
+            valueChain();
+        }
+        else if (resp == 4)
+        {
+            top10Trades();
+        }
+        else if (resp == 5)
+        {
+            relatedMarket();
+        }
+        else if (resp == 6)
+        {
+            requests();
+        }
+        else if (resp == 0)
+        {
+            break;
+        }
+        else
+        {
+            cout << "Error: Opcion Invalida ._." << endl;
+        }
+    }
+}
+
+void loginTUI()
+{
+    Contenful regs;
+    vector<Registered *> allrecords = regs.getRecords();
+    string resp;
+    Registered *user;
+    while (true)
+    {
+        bool founded = false;
+        cout << endl
+             << "◌ » —— ╫ ( ❈ ) ╫ —— « ◌" << endl
+             << "Digite su nombre de usuario:" << endl
+             << "Respuesta: ";
+        cin >> resp;
+
+        for (Registered *tUser : allrecords)
+        {
+            if (tUser->getNickname() == resp)
+            {
+                founded = true;
+                user = tUser;
+                break;
+            }
+        }
+        if (founded)
+        {
+            break;
+        }
+        cout << "Error: Usuario no encontrado, vuelva a intentarlo" << endl;
+    }
+    cout << "Inicio de sesion exitoso" << endl;
+    mainMenu(user);
+}
+void registerTUI()
+{
+}
+
+void startMenuTUI()
+{
+    int resp;
+    while (true)
+    {
+        cout << endl
+             << "◌ » —— ╫ ( ❈ ) ╫ —— « ◌" << endl
+             << "1. Iniciar Sesion" << endl
+             << "2. Crear una Cuenta" << endl
+             << "0. Salir" << endl
+             << endl
+             << "Digite la opcion: ";
+        cin >> resp;
+
+        if (resp == 1)
+        {
+            loginTUI();
+            break;
+        }
+        else if (resp == 2)
+        {
+            registerTUI();
+            break;
+        }
+        else if (resp == 0)
+        {
+            break;
+        }
+        cout << "Error: Opcion Invalida ._." << endl;
+    }
+}
+
 int main(void)
 {
     Contenful regs;
 
     // regs.registerUser("viva saprisa", "conciertos a estadio lleno de gente escuchando pum pum con el mismo acorde por 2 horas", "transporte y seguridad en todos los paises que visita y mucha fiesta tambien", "conejo123", 16, 11, 2022);
     vector<Registered *> allrecords = regs.getRecords();
-    cout << allrecords.at(0)->getNickname() << endl;
+    // cout << allrecords.at(0)->getNickname() << endl;
+    startMenuTUI();
     return 0;
 }
