@@ -7,5 +7,6 @@ comm_progs:
 # apt update -y
 # app install curl
 # cd C:/Users/Davfer/OneDrive/Documents/"Git 2 Semestre"/Estructuras-caso-5/socket
+# cd C:/Users/ncque/OneDrive/Documentos/GitHub/Estructuras-caso-5/socket
 # make
 # ./contenful.exe
