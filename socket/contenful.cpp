@@ -293,6 +293,7 @@ void relatedMarket()
 {
 }
 
+// Pantalla del menu principal
 void mainMenu(Registered *pUser)
 {
     int resp;
@@ -345,6 +346,7 @@ void mainMenu(Registered *pUser)
     }
 }
 
+// Pantalla de inicio de sesion
 void loginTUI()
 {
     Contenful regs;
@@ -373,15 +375,152 @@ void loginTUI()
         {
             break;
         }
-        cout << "Error: Usuario no encontrado, vuelva a intentarlo" << endl;
+        else
+        {
+            cout << "Error: Usuario no encontrado, vuelva a intentarlo" << endl;
+        }
     }
     cout << "Inicio de sesion exitoso" << endl;
     mainMenu(user);
 }
+
+// Pantalla de registro
 void registerTUI()
 {
+    Contenful regs;
+    vector<Registered *> allrecords = regs.getRecords();
+    string answer;
+
+    string name;
+    while (true)
+    {
+        bool founded = false;
+        cout << endl
+             << "◌ » —— ╫ ( ❈ ) ╫ —— « ◌" << endl
+             << "Digite un nombre de usuario:" << endl
+             << "Respuesta: ";
+        cin.ignore();
+        getline(cin, name);
+
+        for (Registered *tUser : allrecords)
+        {
+            if (tUser->getNickname() == name)
+            {
+                founded = true;
+                break;
+            }
+        }
+        if (founded)
+        {
+            cout << "Error: Ese usuario ya esta ocupado, vuelva a intentarlo" << endl;
+            continue;
+        }
+        if (name.size() < 10 || name.size() > 32)
+        {
+            cout << "Error: Nombre invalido, debe ser de 10 a 32 caracteres" << endl;
+            continue;
+        }
+        break;
+    }
+
+    string password;
+    string password2;
+    while (true)
+    {
+        bool founded = false;
+        cout << endl
+             << "◌ » —— ╫ ( ❈ ) ╫ —— « ◌" << endl
+             << "Digite una nueva contraseña:" << endl
+             << "Respuesta: ";
+        cin >> password;
+
+        cout << endl
+             << "◌ » —— ╫ ( ❈ ) ╫ —— « ◌" << endl
+             << "Digite de nuevo la contraseña para confirmar" << endl
+             << "Respuesta: ";
+        cin >> password2;
+
+        if (password != password2)
+        {
+            cout << "Error: Las contraseñas no coinciden" << endl;
+            continue;
+        }
+        break;
+    }
+
+    int resp;
+    while (true)
+    {
+        cout << endl
+             << "◌ » —— ╫ ( ❈ ) ╫ —— « ◌" << endl
+             << "1. Solo quiero ofrecer" << endl
+             << "2. Solo quiero comprar" << endl
+             << "3. Ambas" << endl
+             << endl
+             << "Digite la opcion: ";
+        cin >> resp;
+
+        if (resp < 1 || resp > 3)
+        {
+            cout << "Error: Opcion invalida, vuelva a intentarlo" << endl;
+            continue;
+        }
+        break;
+    }
+
+    string offert;
+    if (resp == 1 || resp == 3)
+    {
+        while (true)
+        {
+            cout << endl
+                 << "◌ » —— ╫ ( ❈ ) ╫ —— « ◌" << endl
+                 << "Escriba su oferta [max 250]" << endl
+                 << "Respuesta: ";
+            cin.ignore();
+            getline(cin, offert);
+
+            if (offert.size() > 250)
+            {
+                cout << "Error: Excedio el limite de caracteres" << endl;
+                continue;
+            }
+            break;
+        }
+    }
+
+    string demand;
+    if (resp == 2 || resp == 3)
+    {
+        while (true)
+        {
+            cout << endl
+                 << "◌ » —— ╫ ( ❈ ) ╫ —— « ◌" << endl
+                 << "Escriba su demanda [max 250]" << endl
+                 << "Respuesta: ";
+            cin.ignore();
+            getline(cin, demand);
+
+            if (offert.size() > 250)
+            {
+                cout << "Error: Excedio el limite de caracteres" << endl;
+                continue;
+            }
+            break;
+        }
+    }
+    time_t t = time(NULL);
+    struct tm tiempoLocal = *localtime(&t);
+
+    int day = tiempoLocal.tm_mday;
+    int month = tiempoLocal.tm_mon;
+    int year = tiempoLocal.tm_year + 1900;
+
+    // regs.registerUser(name, offert, demand, password, day, month, year);
+    cout << name << " " << offert << " " << demand << " " << password << " " << day << " " << month << " " << year << endl;
 }
 
+// Pantalla de inicio
 void startMenuTUI()
 {
     int resp;
@@ -416,10 +555,7 @@ void startMenuTUI()
 
 int main(void)
 {
-    Contenful regs;
-
     // regs.registerUser("viva saprisa", "conciertos a estadio lleno de gente escuchando pum pum con el mismo acorde por 2 horas", "transporte y seguridad en todos los paises que visita y mucha fiesta tambien", "conejo123", 16, 11, 2022);
-    vector<Registered *> allrecords = regs.getRecords();
     // cout << allrecords.at(0)->getNickname() << endl;
     startMenuTUI();
     return 0;
