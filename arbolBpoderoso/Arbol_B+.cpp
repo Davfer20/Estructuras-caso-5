@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "NodeB.h"
 using namespace std;
 
@@ -23,6 +24,15 @@ public:
     {
         if (root != NULL)
             root->display();
+    }
+
+    vector<Comparable *> getConjuntoS()
+    {
+        vector<Comparable *> conjuntoS;
+
+        if (root != NULL)
+            root->getConjuntoS(&conjuntoS);
+        return conjuntoS;
     }
 
     void insert(Comparable *k);
@@ -51,6 +61,23 @@ void NodeB::display()
     if (leaf == false)
     {
         listaNodos[i]->display();
+    }
+}
+
+void NodeB::getConjuntoS(vector<Comparable *> *conjuntoS)
+{
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        if (leaf == false)
+            listaNodos[i]->getConjuntoS(conjuntoS);
+        conjuntoS->push_back(keys[i]);
+        keys[i]->printID();
+    }
+
+    if (leaf == false)
+    {
+        listaNodos[i]->getConjuntoS(conjuntoS);
     }
 }
 

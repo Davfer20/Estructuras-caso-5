@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Comparable.h"
 
+using namespace std;
 class NodeB
 {
     Comparable **keys; // Llaves cercanas
@@ -14,6 +15,7 @@ public:
     void insertNonFull(Comparable *k);
     void splitChild(int i, NodeB *y);
     void display();
+    void getConjuntoS(vector<Comparable *> *conjuntoS);
 
     friend class BTree;
 };
