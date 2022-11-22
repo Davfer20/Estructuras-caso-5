@@ -50,6 +50,7 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "xstring": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "xlocnum": "cpp"
     }
 }
