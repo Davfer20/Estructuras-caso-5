@@ -1,0 +1,14 @@
+{
+  "name": "@louisjuin/draft-d3js-donut-leisure-business",
+  "main": "04044582009eec0b@30.js",
+  "version": "30.0.0",
+  "homepage": "https://observablehq.com/@louisjuin/draft-d3js-donut-leisure-business",
+  "author": {
+    "name": "louisjuin",
+    "url": "https://observablehq.com/@louisjuin"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}
