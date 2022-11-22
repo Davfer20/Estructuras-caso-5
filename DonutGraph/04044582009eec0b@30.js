@@ -48,7 +48,7 @@ function _chart(pie,data,d3,width,height,color,arc)
       .attr("fill", d => color(d.data.name))
       .attr("d", arc)
     .append("title")
-      .text(d => `${d.data.name + '%'}: ${d.data.value.toLocaleString()}`);
+      .text(d => `${d.data.name + 'matches'}: ${d.data.value.toLocaleString()}`);
 
   svg.append("g")
       .attr("font-family", "sans-serif")
@@ -61,12 +61,12 @@ function _chart(pie,data,d3,width,height,color,arc)
       .call(text => text.append("tspan")
           .attr("y", "-0.4em")
           .attr("font-weight", "bold")
-          .text(d => d.data.name))
+          .text(d => d.data.name ))
       .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
           .attr("x", 0)
           .attr("y", "0.7em")
           .attr("fill-opacity", 0.7)
-          .text(d => d.data.value.toLocaleString() + '%'));
+          .text(d => d.data.value.toLocaleString()));
 
   return svg.node();
 }
