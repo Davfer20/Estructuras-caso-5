@@ -3,6 +3,16 @@
 #include <stdio.h>
 #include <curl/curl.h>
 #include "json.hpp"
+#include "Registered.h"
+#include <algorithm>
+#include <sstream>
+#include <iterator>
+#include <bits/stdc++.h>
+#include "../arbolBpoderoso/Arbol_B+.h"
+#include "../match/Person.h"
+#include "../graph/grafo.h"
+
+#define USERS_IN_BP 6
 
 using namespace std;
 using json = nlohmann::json;
@@ -37,44 +47,6 @@ typedef struct
     size_t len;
     size_t buflen;
 } get_request;
-
-class Registered
-{
-private:
-    string nickname;
-    string offer;
-    string demand;
-    string postdate;
-
-public:
-    Registered(string pNickname, string pOffer, string pDemand, string pPostdate)
-    {
-        this->nickname = pNickname;
-        this->offer = pOffer;
-        this->demand = pDemand;
-        this->postdate = pPostdate;
-    }
-
-    string getNickname()
-    {
-        return this->nickname;
-    }
-
-    string getOffer()
-    {
-        return this->offer;
-    }
-
-    string getDemand()
-    {
-        return this->demand;
-    }
-
-    string getPostdate()
-    {
-        return this->postdate;
-    }
-};
 
 // static method to act as callback for curl
 size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
@@ -274,6 +246,10 @@ public:
     }
 };
 
+Contenful regs;
+vector<Registered *> allrecords = regs.getRecords();
+Grafo GobizNetwork(true);
+
 void matches()
 {
 }
@@ -349,8 +325,7 @@ void mainMenu(Registered *pUser)
 // Pantalla de inicio de sesion
 void loginTUI()
 {
-    Contenful regs;
-    vector<Registered *> allrecords = regs.getRecords();
+
     string resp;
     Registered *user;
     while (true)
@@ -387,8 +362,7 @@ void loginTUI()
 // Pantalla de registro
 void registerTUI()
 {
-    Contenful regs;
-    vector<Registered *> allrecords = regs.getRecords();
+
     string answer;
 
     string name;
@@ -553,10 +527,129 @@ void startMenuTUI()
     }
 }
 
+vector<string> filterText(string pText)
+{
+
+    transform(pText.begin(), pText.end(), pText.begin(), ::tolower);
+
+    stringstream ss(pText);
+    istream_iterator<string> begin(ss);
+    istream_iterator<string> end;
+    vector<string> keyWords(begin, end);
+
+    vector<string> keyWords2;
+    for (auto &word : keyWords)
+    {
+        if (!(word.length() < 4) && word != "para")
+        {
+            keyWords2.push_back(word.substr(0, 4));
+        }
+    }
+
+    return keyWords2;
+}
+
+void addData(Registered *pUser, string text, BTree *pTree)
+{
+    vector<string> keyWords = filterText(text);
+    for (auto &word : keyWords)
+    {
+        pTree->insert(new Person(pUser, word));
+    }
+}
+
+void filterRegs(string search, Registered *mainUser)
+{
+
+    BTree *tree = new BTree(6);
+    // GobizNetwork.addNode(mainUser);
+    vector<string> keyWords = filterText(search == "offer" ? mainUser->getOffer() : mainUser->getDemand());
+    for (auto &word : keyWords)
+    {
+        tree->insert(new Person(word));
+    }
+
+    int count = USERS_IN_BP;
+    for (auto &otherUser : allrecords)
+    {
+        otherUser->setMathLevel(0);
+        if (otherUser->getNickname() == mainUser->getNickname())
+        {
+            continue;
+        }
+
+        if (search == "demand" && otherUser->getOffer() != "")
+        {
+            addData(otherUser, otherUser->getOffer(), tree);
+            count--;
+        }
+        else if (otherUser->getDemand() != "")
+        {
+            addData(otherUser, otherUser->getDemand(), tree);
+            count--;
+        }
+        if (!count)
+        {
+            break;
+        }
+    }
+
+    vector<Comparable *> vec = tree->getConjuntoS();
+    vector<Person *> vec2;
+
+    for (int i = 0; i < vec.size(); i++)
+    {
+
+        Person *user = dynamic_cast<Person *>(vec[i]);
+        vec2.push_back(user);
+        cout << user->getNickname() << endl;
+    };
+
+    cout << "hoka";
+    string actualKeyWord;
+    for (auto &persona : vec2)
+    {
+
+        // cout << persona->getKeyWord() << " - " << persona->getNickname() << endl;
+        if (persona->getNickname() == "!")
+        {
+            actualKeyWord = persona->getKeyWord();
+            // cout << endl;
+            // cout << actualKeyWord << endl;
+        }
+        else if (persona->getKeyWord() == actualKeyWord)
+        {
+            persona->incCompatibility();
+        }
+    }
+
+    for (auto &persona : vec2)
+    {
+        if (persona->isMatch())
+        {
+            // GobizNetwork.addNode(persona->getUser());
+            // GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
+        }
+    }
+}
+
 int main(void)
 {
+    Registered *user = allrecords[3];
+    filterRegs("offer", user);
+
+    // for (auto &i : allrecords)
+    // {
+    //     cout << i->getOffer() << endl;
+    //     filterRegs("offer", i);
+    //     cout << endl;
+    //     cout << i->getDemand() << endl;
+    //     filterRegs("demand", i);
+    //     cout << endl;
+    // }
+
     // regs.registerUser("viva saprisa", "conciertos a estadio lleno de gente escuchando pum pum con el mismo acorde por 2 horas", "transporte y seguridad en todos los paises que visita y mucha fiesta tambien", "conejo123", 16, 11, 2022);
     // cout << allrecords.at(0)->getNickname() << endl;
-    startMenuTUI();
+    // startMenuTUI();
     return 0;
 }

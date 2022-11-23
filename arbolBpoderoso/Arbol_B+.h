@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "NodeB.h"
+#include "Comparable.h"
 using namespace std;
 
 #ifndef ARBOL_B

@@ -18,4 +18,4 @@ def decoder(pString):
 
 
     
-print(decoder("Ocupo una institución educativa para mis hijos, quienes poseen gran talento para las áreas STEM, y quienes desean ser futuros ingenieros"))
+print(decoder("Tengo un salon de eventos donde se pueden realizar conciertos a todo volumen y llenos de gente, especialmente de regueton."))
