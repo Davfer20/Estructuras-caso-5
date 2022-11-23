@@ -2,6 +2,7 @@
 #include "Comparable.h"
 
 using namespace std;
+
 class NodeB
 {
     Comparable **keys; // Llaves cercanas
