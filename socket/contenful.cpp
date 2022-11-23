@@ -566,7 +566,8 @@ void filterRegs(string search, Registered *mainUser)
     vector<string> keyWords = filterText(search == "offer" ? mainUser->getOffer() : mainUser->getDemand());
     for (auto &word : keyWords)
     {
-        tree->insert(new Person(word, mainUser));
+        Person *mainPerson = new Person(word, mainUser);
+        tree->insert(mainPerson);
     }
 
     int count = USERS_IN_BP;
@@ -618,31 +619,67 @@ void filterRegs(string search, Registered *mainUser)
         else if (persona->getKeyWord() == actualKeyWord)
         {
             persona->incCompatibility();
-            cout << persona->getKeyWord() << " - " << persona->getNickname() << endl;
+            // cout << persona->getKeyWord() << " - " << persona->getNickname() << endl;
         }
     }
 
-    for (auto &persona : vec3)
+    // for (auto &item : vec3)
+    //{
+    //     cout << item->getNickname() << "; ";
+    // }
+    // cout << endl;
+
+    vector<Person *> vec3Aux;
+    while (!vec3.empty())
     {
+        Person *A = vec3.back();
+        vec3.pop_back();
+        if (A->getNickname() != mainUser->getNickname())
+        {
+            vec3Aux.push_back(A);
+        }
+    }
+    vec3 = vec3Aux;
+
+    while (!vec3.empty())
+    {
+        Person *persona = vec3.at(0);
         if (persona->isMatch())
         {
-            GobizNetwork.addNode(persona->getUser());
-            GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
+            // GobizNetwork.addNode(persona->getUser());
+            // GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
+            string origen = mainUser->getNickname();
+            string destino = persona->getNickname();
+            string matches = to_string(persona->getUser()->getMatchLevel());
+
+            cout << origen + "," + destino + "," + matches << endl;
         }
+        vector<Person *> vec3Aux;
+        while (!vec3.empty())
+        {
+            Person *A = vec3.back();
+            vec3.pop_back();
+            if (A->getNickname() != persona->getNickname())
+            {
+                vec3Aux.push_back(A);
+            }
+        }
+        vec3 = vec3Aux;
     }
 }
 
 int main(void)
 {
-    // Registered *user = allrecords[1];
-    // filterRegs("offer", user);
+    // Registered *i = allrecords[15];
+    //  filterRegs("offer", user);
 
     for (auto &i : allrecords)
     {
-        cout << i->getNickname() << " Oferta" << endl;
+        cout << endl;
+        cout << "- " << i->getNickname() << " Oferta" << endl;
         filterRegs("offer", i);
         cout << endl;
-        cout << i->getNickname() << " Demanda" << endl;
+        cout << "- " << i->getNickname() << " Demanda" << endl;
         filterRegs("demand", i);
         cout << endl;
     }
