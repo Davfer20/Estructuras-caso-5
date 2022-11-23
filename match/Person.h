@@ -21,9 +21,9 @@ public:
         this->keyWord = pWord;
     }
 
-    Person(string pWord)
+    Person(string pWord, Registered *pUser)
     {
-        this->user = NULL;
+        this->user = pUser;
         this->nickname = "!";
         this->keyWord = pWord;
     }

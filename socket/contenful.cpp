@@ -12,7 +12,7 @@
 #include "../match/Person.h"
 #include "../graph/grafo.h"
 
-#define USERS_IN_BP 6
+#define USERS_IN_BP 7
 
 using namespace std;
 using json = nlohmann::json;
@@ -562,11 +562,11 @@ void filterRegs(string search, Registered *mainUser)
 {
 
     BTree *tree = new BTree(6);
-    // GobizNetwork.addNode(mainUser);
+    GobizNetwork.addNode(mainUser);
     vector<string> keyWords = filterText(search == "offer" ? mainUser->getOffer() : mainUser->getDemand());
     for (auto &word : keyWords)
     {
-        tree->insert(new Person(word));
+        tree->insert(new Person(word, mainUser));
     }
 
     int count = USERS_IN_BP;
@@ -595,58 +595,57 @@ void filterRegs(string search, Registered *mainUser)
     }
 
     vector<Comparable *> vec = tree->getConjuntoS();
-    vector<Person *> vec2;
+    vector<Person *> vec3;
 
     for (int i = 0; i < vec.size(); i++)
     {
 
         Person *user = dynamic_cast<Person *>(vec[i]);
-        vec2.push_back(user);
-        cout << user->getNickname() << endl;
+
+        if (user->getUser() != NULL || user->getNickname() == "!")
+        {
+            vec3.push_back(user);
+        }
     };
 
-    cout << "hoka";
     string actualKeyWord;
-    for (auto &persona : vec2)
+    for (auto &persona : vec3)
     {
-
-        // cout << persona->getKeyWord() << " - " << persona->getNickname() << endl;
         if (persona->getNickname() == "!")
         {
             actualKeyWord = persona->getKeyWord();
-            // cout << endl;
-            // cout << actualKeyWord << endl;
         }
         else if (persona->getKeyWord() == actualKeyWord)
         {
             persona->incCompatibility();
+            cout << persona->getKeyWord() << " - " << persona->getNickname() << endl;
         }
     }
 
-    for (auto &persona : vec2)
+    for (auto &persona : vec3)
     {
         if (persona->isMatch())
         {
-            // GobizNetwork.addNode(persona->getUser());
-            // GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
+            GobizNetwork.addNode(persona->getUser());
+            GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
         }
     }
 }
 
 int main(void)
 {
-    Registered *user = allrecords[3];
-    filterRegs("offer", user);
+    // Registered *user = allrecords[1];
+    // filterRegs("offer", user);
 
-    // for (auto &i : allrecords)
-    // {
-    //     cout << i->getOffer() << endl;
-    //     filterRegs("offer", i);
-    //     cout << endl;
-    //     cout << i->getDemand() << endl;
-    //     filterRegs("demand", i);
-    //     cout << endl;
-    // }
+    for (auto &i : allrecords)
+    {
+        cout << i->getNickname() << " Oferta" << endl;
+        filterRegs("offer", i);
+        cout << endl;
+        cout << i->getNickname() << " Demanda" << endl;
+        filterRegs("demand", i);
+        cout << endl;
+    }
 
     // regs.registerUser("viva saprisa", "conciertos a estadio lleno de gente escuchando pum pum con el mismo acorde por 2 horas", "transporte y seguridad en todos los paises que visita y mucha fiesta tambien", "conejo123", 16, 11, 2022);
     // cout << allrecords.at(0)->getNickname() << endl;
