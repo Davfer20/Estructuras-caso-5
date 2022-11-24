@@ -73,7 +73,7 @@ public:
         if (!this->esDirigido)
         {
             Arco *reverseArc = new Arco(pDestino, pOrigen, pPeso);
-            pDestino->addArc(reverseArc);
+            pDestino->addArc(newArc);
         }
     }
 
