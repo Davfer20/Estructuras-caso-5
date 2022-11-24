@@ -1,8 +1,8 @@
 // https://observablehq.com/@d3/zoomable-bar-chart@233
 function _1(md){return(
-md`# Zoomable Bar Chart
+md`# Top 10 Trades
 
-This bar chart uses D3’s zoom behavior on the *x*-axis. Double-click on the bar chart below or use the mouse wheel (or pinch) to zoom. This example is contrived—you don’t need zooming if you can easily display all the bars at once.`
+Este es un simulador que muestra cuales son los 10 productos con mas conexiones`
 )}
 
 function _chart(d3,width,height,zoom,data,x,y,xAxis,yAxis)
