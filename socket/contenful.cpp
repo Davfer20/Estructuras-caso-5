@@ -247,16 +247,48 @@ public:
     }
 };
 
+struct Product
+{
+    int reps;
+    string word;
+};
+
 Contenful regs;
 vector<Registered *> allrecords = regs.getRecords();
-Grafo GobizNetwork(true);
-vector<string> matchesVector = {};
+Grafo GobizNetwork(false);
+vector<string> matchesVector;
+vector<Product> products;
 
-void matches()
+void matches(Registered *pUser)
 {
-}
-void requests()
-{
+    NodoGrafo *userNode = GobizNetwork.getNodo(pUser->getId());
+    vector<Arco *> *conections = userNode->getArcs();
+
+    cout << "◌ » —— ╫ < Lista de Matches > ╫ —— « ◌" << endl
+         << endl;
+
+    cout << "——————————————————————————————————————" << endl;
+    for (int i = 0; i < conections->size(); i++)
+    {
+        Arco *arc = conections->at(i);
+        NodoGrafo *destinoNodeG = static_cast<NodoGrafo *>(arc->getDestino());
+        NodoGrafo *origenNodeG = static_cast<NodoGrafo *>(arc->getOrigen());
+        Registered *origen = reinterpret_cast<Registered *>(origenNodeG->getInfo());
+        Registered *destino = reinterpret_cast<Registered *>(destinoNodeG->getInfo());
+
+        if (origen->getNickname() == pUser->getNickname())
+        {
+            cout << "— " << destino->getNickname() << "        " << destino->getPostdate() << endl
+                 << "Oferta:" << destino->getOffer() << endl;
+        }
+        else
+        {
+            cout
+                << "— " << origen->getNickname() << "        " << origen->getPostdate() << endl
+                << "Demanda:" << origen->getDemand() << endl;
+        }
+        cout << "——————————————————————————————————————" << endl;
+    }
 }
 void valueChain()
 {
@@ -266,9 +298,46 @@ void circularTrade()
 }
 void top10Trades()
 {
+
+    vector<string> top10format;
+    vector<Product> top10;
+
+    Product test10;
+    test10.word = "No_Content";
+    test10.reps = 0;
+    top10.push_back(test10);
+
+    cout << "funka esta parte" << endl;
+    for (Product &prod : products)
+    {
+        for (int i = 0; i < top10.size(); i++)
+        {
+            if (prod.reps >= top10.at(i).reps)
+            {
+                top10.insert(top10.begin() + i, prod);
+                break;
+            }
+        }
+        if (top10.size() > 10)
+        {
+            top10.pop_back();
+        }
+    }
+    for (Product &prod : top10)
+    {
+        top10format.push_back(prod.word + "," + to_string(prod.reps));
+        cout << prod.word + "," + to_string(prod.reps) << endl;
+    }
 }
+
 void relatedMarket()
 {
+    vector<string> relatedMformat;
+    for (int i = 0; i < products.size(); i++)
+    {
+        relatedMformat.push_back(products[i].word + "," + to_string(products[i].reps));
+        cout << products[i].word + "," + to_string(products[i].reps) << endl;
+    }
 }
 
 // Pantalla del menu principal
@@ -284,14 +353,13 @@ void mainMenu(Registered *pUser)
              << "3. Cadenas de Valor" << endl
              << "4. Top 10 Solicitados" << endl
              << "5. Grafico de Presencia" << endl
-             << "6. Solicitudes" << endl
              << "0. Salir" << endl
              << endl
              << "Digite la opcion: ";
         cin >> resp;
         if (resp == 1)
         {
-            matches();
+            matches(pUser);
         }
         else if (resp == 2)
         {
@@ -308,10 +376,6 @@ void mainMenu(Registered *pUser)
         else if (resp == 5)
         {
             relatedMarket();
-        }
-        else if (resp == 6)
-        {
-            requests();
         }
         else if (resp == 0)
         {
@@ -570,7 +634,27 @@ void addToGraph(Registered *data)
     catch (const std::exception &e)
     {
         GobizNetwork.addNode(data);
-        std::cerr << e.what() << '\n';
+    }
+}
+
+void addProduct(string pWord)
+{
+    bool founded = false;
+    for (Product &s : products)
+    {
+        if (s.word == pWord)
+        {
+            s.reps += 1;
+            founded = true;
+            break;
+        }
+    }
+    if (!founded)
+    {
+        Product newProduct;
+        newProduct.reps = 1;
+        newProduct.word = pWord;
+        products.push_back(newProduct);
     }
 }
 
@@ -635,6 +719,7 @@ void filterRegs(string search, Registered *mainUser)
         }
         else if (persona->getKeyWord() == actualKeyWord)
         {
+            addProduct(actualKeyWord);
             persona->incCompatibility();
             // cout << persona->getKeyWord() << " - " << persona->getNickname() << endl;
         }
@@ -700,34 +785,42 @@ int main(void)
 
     for (auto &i : allrecords)
     {
-        cout << endl;
-        cout << "- " << i->getNickname() << " Oferta" << endl;
+        // cout << endl;
+        //  cout << "- " << i->getNickname() << " Oferta" << endl;
         filterRegs("offer", i);
-        cout << endl;
-        cout << "- " << i->getNickname() << " Demanda" << endl;
+        // cout << endl;
+        //  cout << "- " << i->getNickname() << " Demanda" << endl;
         filterRegs("demand", i);
-        cout << endl;
+        // cout << endl;
     }
 
     // regs.registerUser("viva saprisa", "conciertos a estadio lleno de gente escuchando pum pum con el mismo acorde por 2 horas", "transporte y seguridad en todos los paises que visita y mucha fiesta tambien", "conejo123", 16, 11, 2022);
     // cout << allrecords.at(0)->getNickname() << endl;
-    // startMenuTUI();
 
     CircularTradeB *circulito = new CircularTradeB(matchesVector);
     circulito->getBase();
+
+    // for (Product &prod : products)
+    // {
+    //     cout << prod.word << endl;
+    // }
+
+    // top10Trades();
+    relatedMarket();
+    // startMenuTUI();
 
     // for (auto &s : matchesVector)
     //{
     //     cout << s << endl;
     // }
 
-    vector<INodo *> result = GobizNetwork.broadPath(allrecords[0]);
+    // vector<INodo *> result = GobizNetwork.broadPath(allrecords[0]);
 
-    for (int i = 0; i < result.size(); i++)
-    {
-        Registered dato = *((Registered *)(void *)result[i]);
-        cout << dato.getId() << " " << dato.getNickname() << endl;
-    }
+    // for (int i = 0; i < result.size(); i++)
+    // {
+    //     Registered dato = *((Registered *)(void *)result[i]);
+    //     cout << dato.getId() << " " << dato.getNickname() << endl;
+    // }
 
     return 0;
 }
