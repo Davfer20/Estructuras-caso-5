@@ -70,6 +70,8 @@
         "xutility": "cpp",
         "ranges": "cpp",
         "span": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "bitset": "cpp",
+        "fstream": "cpp"
     }
 }

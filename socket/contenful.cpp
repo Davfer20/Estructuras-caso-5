@@ -12,6 +12,9 @@
 #include "../match/Person.h"
 #include "../graph/grafo.h"
 #include "../CircularTrade/CircularTradeB.h"
+#include "../TopTrades/BarTradesB.h"
+#include "../RelatedMarket/RelatedMarketB.h"
+#include "../ValueChain/ValueChainB.h"
 
 #define USERS_IN_BP 7
 
@@ -259,6 +262,191 @@ Grafo GobizNetwork(false);
 vector<string> matchesVector;
 vector<Product> products;
 
+vector<string> filterText(string pText)
+{
+
+    transform(pText.begin(), pText.end(), pText.begin(), ::tolower);
+
+    stringstream ss(pText);
+    istream_iterator<string> begin(ss);
+    istream_iterator<string> end;
+    vector<string> keyWords(begin, end);
+
+    vector<string> keyWords2;
+    for (auto &word : keyWords)
+    {
+        if (!(word.length() < 4) && word != "para")
+        {
+            keyWords2.push_back(word.substr(0, 4));
+        }
+    }
+
+    return keyWords2;
+}
+
+void addData(Registered *pUser, string text, BTree *pTree)
+{
+    vector<string> keyWords = filterText(text);
+    for (auto &word : keyWords)
+    {
+        pTree->insert(new Person(pUser, word));
+    }
+}
+
+void addToGraph(Registered *data)
+{
+
+    try
+    {
+        GobizNetwork.getNodo(data->getId());
+    }
+    catch (const std::exception &e)
+    {
+        GobizNetwork.addNode(data);
+    }
+}
+
+void addProduct(string pWord)
+{
+    bool founded = false;
+    for (Product &s : products)
+    {
+        if (s.word == pWord)
+        {
+            s.reps += 1;
+            founded = true;
+            break;
+        }
+    }
+    if (!founded)
+    {
+        Product newProduct;
+        newProduct.reps = 1;
+        newProduct.word = pWord;
+        products.push_back(newProduct);
+    }
+}
+
+void filterRegs(string search, Registered *mainUser)
+{
+    mainUser->setMathLevel(0);
+    BTree *tree = new BTree(6);
+    addToGraph(mainUser);
+
+    vector<string> keyWords = filterText(search == "offer" ? mainUser->getOffer() : mainUser->getDemand());
+    for (auto &word : keyWords)
+    {
+        Person *mainPerson = new Person(word, mainUser);
+        tree->insert(mainPerson);
+    }
+
+    int count = USERS_IN_BP;
+    for (auto &otherUser : allrecords)
+    {
+        otherUser->setMathLevel(0);
+        if (otherUser->getNickname() == mainUser->getNickname())
+        {
+            continue;
+        }
+
+        if (search == "demand" && otherUser->getOffer() != "")
+        {
+            addData(otherUser, otherUser->getOffer(), tree);
+            count--;
+        }
+        else if (otherUser->getDemand() != "")
+        {
+            addData(otherUser, otherUser->getDemand(), tree);
+            count--;
+        }
+        if (!count)
+        {
+            break;
+        }
+    }
+
+    vector<Comparable *> vec = tree->getConjuntoS();
+    vector<Person *> vec3;
+
+    for (int i = 0; i < vec.size(); i++)
+    {
+
+        Person *user = dynamic_cast<Person *>(vec[i]);
+
+        if (user->getUser() != NULL || user->getNickname() == "!")
+        {
+            vec3.push_back(user);
+        }
+    };
+
+    string actualKeyWord;
+    for (auto &persona : vec3)
+    {
+        if (persona->getNickname() == "!")
+        {
+            actualKeyWord = persona->getKeyWord();
+        }
+        else if (persona->getKeyWord() == actualKeyWord)
+        {
+            addProduct(actualKeyWord);
+            persona->incCompatibility();
+            // cout << persona->getKeyWord() << " - " << persona->getNickname() << endl;
+        }
+    }
+
+    // for (auto &item : vec3)
+    //{
+    //     cout << item->getNickname() << "; ";
+    // }
+    // cout << endl;
+
+    vector<Person *> vec3Aux;
+    while (!vec3.empty())
+    {
+        Person *A = vec3.back();
+        vec3.pop_back();
+        if (A->getNickname() != mainUser->getNickname())
+        {
+            vec3Aux.push_back(A);
+        }
+    }
+    vec3 = vec3Aux;
+
+    while (!vec3.empty())
+    {
+        Person *persona = vec3.at(0);
+        if (persona->isMatch())
+        {
+            addToGraph(persona->getUser());
+
+            string origen = mainUser->getNickname();
+            string destino = persona->getNickname();
+            string matches = to_string(persona->getUser()->getMatchLevel());
+            if (search == "offer")
+            {
+                GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
+                matchesVector.push_back(origen + "," + destino + "," + matches);
+            }
+            else
+            {
+                GobizNetwork.addArc(persona->getUser(), mainUser, persona->getUser()->getMatchLevel());
+                matchesVector.push_back(destino + "," + origen + "," + matches);
+            }
+        }
+        vector<Person *> vec3Aux;
+        while (!vec3.empty())
+        {
+            Person *A = vec3.back();
+            vec3.pop_back();
+            if (A->getNickname() != persona->getNickname())
+            {
+                vec3Aux.push_back(A);
+            }
+        }
+        vec3 = vec3Aux;
+    }
+}
+
 void matches(Registered *pUser)
 {
     NodoGrafo *userNode = GobizNetwork.getNodo(pUser->getId());
@@ -292,9 +480,33 @@ void matches(Registered *pUser)
 }
 void valueChain()
 {
+    for (auto &i : allrecords)
+    {
+        // cout << endl;
+        //  cout << "- " << i->getNickname() << " Oferta" << endl;
+        filterRegs("offer", i);
+        // cout << endl;
+        //  cout << "- " << i->getNickname() << " Demanda" << endl;
+        filterRegs("demand", i);
+        // cout << endl;
+    }
+    ValueChainB *valueVector = new ValueChainB(matchesVector);
+    valueVector->getGraphBar();
 }
 void circularTrade()
 {
+    for (auto &i : allrecords)
+    {
+        // cout << endl;
+        //  cout << "- " << i->getNickname() << " Oferta" << endl;
+        filterRegs("offer", i);
+        // cout << endl;
+        //  cout << "- " << i->getNickname() << " Demanda" << endl;
+        filterRegs("demand", i);
+        // cout << endl;
+    }
+    CircularTradeB *circulito = new CircularTradeB(matchesVector);
+    circulito->getBase();
 }
 void top10Trades()
 {
@@ -307,7 +519,6 @@ void top10Trades()
     test10.reps = 0;
     top10.push_back(test10);
 
-    cout << "funka esta parte" << endl;
     for (Product &prod : products)
     {
         for (int i = 0; i < top10.size(); i++)
@@ -328,6 +539,9 @@ void top10Trades()
         top10format.push_back(prod.word + "," + to_string(prod.reps));
         cout << prod.word + "," + to_string(prod.reps) << endl;
     }
+
+    BarTradesB topTrade(top10format);
+    topTrade.getGraphBar();
 }
 
 void relatedMarket()
@@ -336,8 +550,10 @@ void relatedMarket()
     for (int i = 0; i < products.size(); i++)
     {
         relatedMformat.push_back(products[i].word + "," + to_string(products[i].reps));
-        cout << products[i].word + "," + to_string(products[i].reps) << endl;
+        // cout << products[i].word + "," + to_string(products[i].reps) << endl;
     }
+    RelatedMarketB donut(relatedMformat);
+    donut.getBase();
 }
 
 // Pantalla del menu principal
@@ -593,212 +809,13 @@ void startMenuTUI()
     }
 }
 
-vector<string> filterText(string pText)
-{
-
-    transform(pText.begin(), pText.end(), pText.begin(), ::tolower);
-
-    stringstream ss(pText);
-    istream_iterator<string> begin(ss);
-    istream_iterator<string> end;
-    vector<string> keyWords(begin, end);
-
-    vector<string> keyWords2;
-    for (auto &word : keyWords)
-    {
-        if (!(word.length() < 4) && word != "para")
-        {
-            keyWords2.push_back(word.substr(0, 4));
-        }
-    }
-
-    return keyWords2;
-}
-
-void addData(Registered *pUser, string text, BTree *pTree)
-{
-    vector<string> keyWords = filterText(text);
-    for (auto &word : keyWords)
-    {
-        pTree->insert(new Person(pUser, word));
-    }
-}
-
-void addToGraph(Registered *data)
-{
-
-    try
-    {
-        GobizNetwork.getNodo(data->getId());
-    }
-    catch (const std::exception &e)
-    {
-        GobizNetwork.addNode(data);
-    }
-}
-
-void addProduct(string pWord)
-{
-    bool founded = false;
-    for (Product &s : products)
-    {
-        if (s.word == pWord)
-        {
-            s.reps += 1;
-            founded = true;
-            break;
-        }
-    }
-    if (!founded)
-    {
-        Product newProduct;
-        newProduct.reps = 1;
-        newProduct.word = pWord;
-        products.push_back(newProduct);
-    }
-}
-
-void filterRegs(string search, Registered *mainUser)
-{
-    mainUser->setMathLevel(0);
-    BTree *tree = new BTree(6);
-    addToGraph(mainUser);
-
-    vector<string> keyWords = filterText(search == "offer" ? mainUser->getOffer() : mainUser->getDemand());
-    for (auto &word : keyWords)
-    {
-        Person *mainPerson = new Person(word, mainUser);
-        tree->insert(mainPerson);
-    }
-
-    int count = USERS_IN_BP;
-    for (auto &otherUser : allrecords)
-    {
-        otherUser->setMathLevel(0);
-        if (otherUser->getNickname() == mainUser->getNickname())
-        {
-            continue;
-        }
-
-        if (search == "demand" && otherUser->getOffer() != "")
-        {
-            addData(otherUser, otherUser->getOffer(), tree);
-            count--;
-        }
-        else if (otherUser->getDemand() != "")
-        {
-            addData(otherUser, otherUser->getDemand(), tree);
-            count--;
-        }
-        if (!count)
-        {
-            break;
-        }
-    }
-
-    vector<Comparable *> vec = tree->getConjuntoS();
-    vector<Person *> vec3;
-
-    for (int i = 0; i < vec.size(); i++)
-    {
-
-        Person *user = dynamic_cast<Person *>(vec[i]);
-
-        if (user->getUser() != NULL || user->getNickname() == "!")
-        {
-            vec3.push_back(user);
-        }
-    };
-
-    string actualKeyWord;
-    for (auto &persona : vec3)
-    {
-        if (persona->getNickname() == "!")
-        {
-            actualKeyWord = persona->getKeyWord();
-        }
-        else if (persona->getKeyWord() == actualKeyWord)
-        {
-            addProduct(actualKeyWord);
-            persona->incCompatibility();
-            // cout << persona->getKeyWord() << " - " << persona->getNickname() << endl;
-        }
-    }
-
-    // for (auto &item : vec3)
-    //{
-    //     cout << item->getNickname() << "; ";
-    // }
-    // cout << endl;
-
-    vector<Person *> vec3Aux;
-    while (!vec3.empty())
-    {
-        Person *A = vec3.back();
-        vec3.pop_back();
-        if (A->getNickname() != mainUser->getNickname())
-        {
-            vec3Aux.push_back(A);
-        }
-    }
-    vec3 = vec3Aux;
-
-    while (!vec3.empty())
-    {
-        Person *persona = vec3.at(0);
-        if (persona->isMatch())
-        {
-            addToGraph(persona->getUser());
-
-            string origen = mainUser->getNickname();
-            string destino = persona->getNickname();
-            string matches = to_string(persona->getUser()->getMatchLevel());
-            if (search == "offer")
-            {
-                GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
-                matchesVector.push_back(origen + "," + destino + "," + matches);
-            }
-            else
-            {
-                GobizNetwork.addArc(persona->getUser(), mainUser, persona->getUser()->getMatchLevel());
-                matchesVector.push_back(destino + "," + origen + "," + matches);
-            }
-        }
-        vector<Person *> vec3Aux;
-        while (!vec3.empty())
-        {
-            Person *A = vec3.back();
-            vec3.pop_back();
-            if (A->getNickname() != persona->getNickname())
-            {
-                vec3Aux.push_back(A);
-            }
-        }
-        vec3 = vec3Aux;
-    }
-}
-
 int main(void)
 {
     // Registered *i = allrecords[15];
     //  filterRegs("offer", user);
 
-    for (auto &i : allrecords)
-    {
-        // cout << endl;
-        //  cout << "- " << i->getNickname() << " Oferta" << endl;
-        filterRegs("offer", i);
-        // cout << endl;
-        //  cout << "- " << i->getNickname() << " Demanda" << endl;
-        filterRegs("demand", i);
-        // cout << endl;
-    }
-
     // regs.registerUser("viva saprisa", "conciertos a estadio lleno de gente escuchando pum pum con el mismo acorde por 2 horas", "transporte y seguridad en todos los paises que visita y mucha fiesta tambien", "conejo123", 16, 11, 2022);
     // cout << allrecords.at(0)->getNickname() << endl;
-
-    CircularTradeB *circulito = new CircularTradeB(matchesVector);
-    circulito->getBase();
 
     // for (Product &prod : products)
     // {
@@ -806,8 +823,8 @@ int main(void)
     // }
 
     // top10Trades();
-    relatedMarket();
-    // startMenuTUI();
+    //  relatedMarket();
+    startMenuTUI();
 
     // for (auto &s : matchesVector)
     //{

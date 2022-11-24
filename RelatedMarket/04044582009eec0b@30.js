@@ -1,6 +1,6 @@
 // https://observablehq.com/@louisjuin/draft-d3js-donut-leisure-business@30
 function _1(md){return(
-md`# Draft D3js - donut Leisure-Business`
+md`# Este es un grafo procentual el cual se enfoca en mostrar las areas de mercado conexas. Usa colores para diferenciar de una mejor manera las particiones`
 )}
 
 function _d3(require){return(
