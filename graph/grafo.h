@@ -173,6 +173,11 @@ public:
             cout << actual->getInfo()->getId() << " tiene " << actual->getArcs()->size() << endl;
         }
     }
+
+    vector<NodoGrafo *> getListaNodos()
+    {
+        return this->listaNodos;
+    }
 };
 
 #endif

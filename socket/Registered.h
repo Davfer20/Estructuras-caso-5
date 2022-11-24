@@ -2,9 +2,13 @@
 #define REGIS
 
 #include "../graph/INodo.h"
+#include "../match/PersonID.h"
+
 #include <string>
 
 using namespace std;
+
+PersonID *PersonID::instance = 0;
 
 class Registered : public INodo
 {
@@ -22,7 +26,8 @@ public:
         this->offer = pOffer;
         this->demand = pDemand;
         this->postdate = pPostdate;
-        this->setId(rand() * 99999999999);
+        PersonID *var = var->getInstance();
+        this->setId(var->getID());
     }
 
     string getNickname()

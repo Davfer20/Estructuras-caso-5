@@ -11,6 +11,7 @@
 #include "../arbolBpoderoso/Arbol_B+.h"
 #include "../match/Person.h"
 #include "../graph/grafo.h"
+#include "../CircularTrade/CircularTradeB.h"
 
 #define USERS_IN_BP 7
 
@@ -249,6 +250,7 @@ public:
 Contenful regs;
 vector<Registered *> allrecords = regs.getRecords();
 Grafo GobizNetwork(true);
+vector<string> matchesVector = {};
 
 void matches()
 {
@@ -558,11 +560,26 @@ void addData(Registered *pUser, string text, BTree *pTree)
     }
 }
 
-void filterRegs(string search, Registered *mainUser)
+void addToGraph(Registered *data)
 {
 
+    try
+    {
+        GobizNetwork.getNodo(data->getId());
+    }
+    catch (const std::exception &e)
+    {
+        GobizNetwork.addNode(data);
+        std::cerr << e.what() << '\n';
+    }
+}
+
+void filterRegs(string search, Registered *mainUser)
+{
+    mainUser->setMathLevel(0);
     BTree *tree = new BTree(6);
-    GobizNetwork.addNode(mainUser);
+    addToGraph(mainUser);
+
     vector<string> keyWords = filterText(search == "offer" ? mainUser->getOffer() : mainUser->getDemand());
     for (auto &word : keyWords)
     {
@@ -646,13 +663,21 @@ void filterRegs(string search, Registered *mainUser)
         Person *persona = vec3.at(0);
         if (persona->isMatch())
         {
-            // GobizNetwork.addNode(persona->getUser());
-            // GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
+            addToGraph(persona->getUser());
+
             string origen = mainUser->getNickname();
             string destino = persona->getNickname();
             string matches = to_string(persona->getUser()->getMatchLevel());
-
-            cout << origen + "," + destino + "," + matches << endl;
+            if (search == "offer")
+            {
+                GobizNetwork.addArc(mainUser, persona->getUser(), persona->getUser()->getMatchLevel());
+                matchesVector.push_back(origen + "," + destino + "," + matches);
+            }
+            else
+            {
+                GobizNetwork.addArc(persona->getUser(), mainUser, persona->getUser()->getMatchLevel());
+                matchesVector.push_back(destino + "," + origen + "," + matches);
+            }
         }
         vector<Person *> vec3Aux;
         while (!vec3.empty())
@@ -687,5 +712,22 @@ int main(void)
     // regs.registerUser("viva saprisa", "conciertos a estadio lleno de gente escuchando pum pum con el mismo acorde por 2 horas", "transporte y seguridad en todos los paises que visita y mucha fiesta tambien", "conejo123", 16, 11, 2022);
     // cout << allrecords.at(0)->getNickname() << endl;
     // startMenuTUI();
+
+    CircularTradeB *circulito = new CircularTradeB(matchesVector);
+    circulito->getBase();
+
+    // for (auto &s : matchesVector)
+    //{
+    //     cout << s << endl;
+    // }
+
+    vector<INodo *> result = GobizNetwork.broadPath(allrecords[0]);
+
+    for (int i = 0; i < result.size(); i++)
+    {
+        Registered dato = *((Registered *)(void *)result[i]);
+        cout << dato.getId() << " " << dato.getNickname() << endl;
+    }
+
     return 0;
 }
